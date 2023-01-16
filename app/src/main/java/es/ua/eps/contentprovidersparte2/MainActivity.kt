@@ -1,9 +1,14 @@
 package es.ua.eps.contentprovidersparte2
 
+import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import es.ua.eps.contentprovidersparte2.databinding.ActivityMainBinding
+
+var welcomeName = ""
+var userName = ""
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -27,19 +32,33 @@ class MainActivity : AppCompatActivity() {
             null,
             null)
         with(binding) {
-            texto.text = "Name & Email: \n"
+            btnLogin.setOnClickListener{
+                if (etUser.text.isNotBlank() &&
+                    etPass.text.isNotBlank()) {
+                    val cursor = contentResolver.query(
+                        CONTENT_URI,
+                        arrayOf(NOMBRE_COMPLETO, NOMBRE_USUARIO),
+                        "${NOMBRE_USUARIO} = ? AND ${PASSWORD} = ?",
+                        arrayOf(etUser.text.toString(),etPass.text.toString()),
+                        null)
+                    if (cursor!!.moveToFirst()) {
+                        welcomeName = cursor.getString(0).toString()
+                        userName = cursor.getString(1).toString()
+                        cursor.close()
+                        Intent(this@MainActivity,UserData::class.java).also {
+                            startActivity(it)
+                        }
+                    } else {
+                        Toast.makeText(this@MainActivity, "Error usuario/password incorrectos", Toast.LENGTH_LONG).show()
+                    }
 
-            if (cursor!!.moveToFirst()) {
-                do {
-                    texto.append(cursor.getString(0).toString()+": ")
-                    texto.append(cursor.getString(1).toString()+"\n")
-                } while (cursor.moveToNext())
+                } else {
+                    Toast.makeText(this@MainActivity, "Error usuario/password incorrectos", Toast.LENGTH_LONG).show()
+                }
             }
-
-            cursor.close()
-
-
-
+            btnClose.setOnClickListener{
+                this@MainActivity.finish()
+            }
         }
     }
 }
